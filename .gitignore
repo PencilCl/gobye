@@ -94,5 +94,5 @@ gobye/databaseSettings.py
 # migrations
 migrations
 
-# static files
-static/admin
+# DEBUG files
+/DEBUG
