@@ -338,7 +338,7 @@ class CreditStatistics(object):
 			query = Courses.objects.filter(courseNum=course["courseNum"])
 			if self.college == self.profession: #如果必修课程在当前专业查不到且专业名等于学院名 则可能是类似计软国际班的专业
 				for x in query:
-					result = Professes.objects.filter(id=x.professionId).filter(grade=self.grade).filter(college=self.college)#学院、年级相同,认为是类似计软国际班的专业
+					result = Professions.objects.filter(id=x.professionId).filter(grade=self.grade).filter(college=self.college)#学院、年级相同,认为是类似计软国际班的专业
 					if len(result) > 0:#若年级符合,则认为专业需要更新.并重新进行课程查询
 						self._start(x.professionId)
 						raise Exception("更换专业")
