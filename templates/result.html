@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.5">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/css/result.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/result.js"></script>
+</head>
+<body>
+    <div class="dialog">
+        <h1>你还差 {{lack}} 个 学分</h1>
+        <br>
+        <p><a href="javascript:void(0)" onclick="reset()">重置</a></p>
+    </div>
+    <div class="pretty-table public-must">
+        <table>
+            <caption>公共必修课(已修)</caption>
+            <thead>
+                <tr>
+                    <th>学期号</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>无</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="6">
+                        综合必修总计：12分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量标记双修">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pretty-table profession-must">
+        <table>
+            <caption>学科专业核心课(已修)</caption>
+            <thead>
+                <tr>
+                    <th>学期号</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>理</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        专业必修总计：12 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量标记双修">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pretty-table profession-select">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <caption>学科专业选修课(已修)</caption>
+            <thead>
+                <tr>
+                    <th>学期号</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>理</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        专业选修总计：12 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量标记公选">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="pretty-table public-select">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <caption>文/理选修课(已修)</caption>
+            <thead>
+                <tr>
+                    <th>学期号</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>文</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        公共选修总计：12 分【理科学分：2分、文科学分：2分（其中包含人文学分：2分）】
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+<!--     <div class="pretty-table double">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+            <caption>辅修、双专业、双学位</caption>
+            <thead>
+                <tr>
+                    <th>学期号</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td colspan="6">
+                        双修总计：0 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记双修">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div> -->
+    <div class="pretty-table failed">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+            <caption>挂科课程</caption>
+            <thead>
+                <tr>
+                    <th>学期号</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td colspan="6">
+                        已挂总计：0 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记挂科">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="pretty-table remain">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+            <caption>公共必修课(需修)</caption>
+            <thead>
+                <tr>
+                    <th>建议修读学期</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>无</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        未修总计：12 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="pretty-table remain">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+        <caption>学科专业核心课(需修)</caption>
+            <thead>
+                <tr>
+                    <th>建议修读学期</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>文</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        未修总计：12 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="pretty-table remain">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+        <caption>可修选修列表</caption>
+            <thead>
+                <tr>
+                    <th>建议修读学期</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>20151</td>
+                    <td>0102840011</td>
+                    <td>文史哲通论</td>
+                    <td>必修</td>
+                    <td>2.0</td>
+                    <td>文</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        未修总计：12 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</body>
+</html>
