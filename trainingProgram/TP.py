@@ -9,7 +9,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'gobye.settings'
 from django.conf import settings
 import django
 django.setup()
-from dataDeal.models import Professions, Plan, Courses
+from dataDeal.models import Professions, Plan, Courses, MCCourses
 
 default_encoding = 'utf-8'
 if sys.getdefaultencoding() != default_encoding:
@@ -26,6 +26,9 @@ def cleanAllDatabaseTable():
 	cleanDatabaseTable(Plan)
 	print "Courses"
 	cleanDatabaseTable(Courses)
+	# 不清理MOOC课程 防止MOOC不开课无法查询到学分类别
+	# print "MCCourses"
+	# cleanDatabaseTable(MCCourses)
 
 def cleanDatabaseTable(table):
 	table.objects.all().delete()
@@ -253,13 +256,37 @@ def addCourses(html, professionId):
 		creditType = td[15].string
 		remark = td[16].string
 		Courses(professionId=professionId, courseNum=courseNum, courseName=courseName, courseNameEN=courseNameEN, courseType=courseType, suggestion=suggestion, credit=credit, creditType=creditType, remark=remark).save()
-		
+
+def getMCCourses():
+	'''
+		获取MOOC开课列表
+	'''
+	print "获取MOOC开课列表"
+
+	url = "http://192.168.240.168/xuanke/coursehtm/d120161.htm"
+	html = urllib.urlopen(url).read().decode("gb18030")
+	html = BeautifulSoup(html, "lxml")
+	form =  html.form
+	trs = form.find_all("tr")[2:] #除去前两个表头
+	for tr in trs:
+		td = tr.find_all("td")
+		courseNum = td[2].string
+		courseName = td[3].a.string
+		credit = float(td[6].string)
+		creditType = td[11].string[:1] if td[11].string else "理" # 有课程学分类型没有值= =默认用"理"来代替
+		remark = td[12].string
+		# 判断数据库中是否已存在该课程， 存在则不添加
+		query = MCCourses.objects.filter(courseNum=courseNum) #判断课程号
+		if len(query) < 1:
+			MCCourses(courseNum=courseNum, courseName=courseName, credit=credit, creditType=creditType, remark=remark).save()
+
 def main():
 	cleanAllDatabaseTable()
 
 	colleges = getColleges()
 	professionInfo = getProfessionsName(colleges)
 	getTrainingProgramPages(professionInfo)
+	getMCCourses()
 
 if __name__ == '__main__':
 	main()

@@ -28,4 +28,11 @@ class Courses(models.Model):
 	credit = models.FloatField()
 	suggestion = models.IntegerField()
 	creditType = models.CharField(max_length=10)
-	remark = models.CharField(max_length=100)
+	remark = models.CharField(max_length=300)
+
+class MCCourses(models.Model):
+	courseNum = models.CharField(max_length=100)
+	courseName = models.CharField(max_length=200)
+	credit = models.FloatField()
+	creditType = models.CharField(max_length=10)
+	remark = models.CharField(max_length=300)
