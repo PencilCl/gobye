@@ -33,6 +33,18 @@ class CreditStatistics(object):
 		self.professionId = None
 		self.plan = None
 
+		self.__init__changeProfession()
+
+		self._finish = False
+		self._success = False
+		self._errorInfo = None
+
+		self._start()
+
+	def __init__changeProfession(self):
+		'''
+			初始化与更换专业需要重新初始化的变量
+		'''
 		self.latestSelectionResult = [] #最新选课结果
 		self.repairedCourses = [] #已修课程
 		self.failCourses = [] #挂科课程
@@ -45,12 +57,6 @@ class CreditStatistics(object):
 		self.nonRepairedPublicCourses = [] #未修公共课程
 		self.nonRepairedProfessionCourses = [] # 未修学科专业核心课程
 		self.optionalCourses = [] # 可选修课程
-
-		self._finish = False
-		self._success = False
-		self._errorInfo = None
-
-		self._start()
 
 	def _getLatestSelectionResult(self):
 		'''
@@ -175,7 +181,7 @@ class CreditStatistics(object):
 			# 计算机科学与技术（数学与计算机科学实验班）
 			# http://192.168.2.20/axsxx/sxwfx_zige.asp 双专业/双学位/辅修资格
 			print "疑似双专业" + profession
-			file(os.path.join(DEBUG_DIR, profession + "个人信息页.txt"), "wb").write(html)
+			file(os.path.join(DEBUG_DIR, profession + "个人信息页.txt"), "wb").write(response.content)
 			file(os.path.join(DEBUG_DIR, profession + "双修资格页.txt"), "wb").write(requests.get("http://192.168.2.20/axsxx/sxwfx_zige.asp", cookies=self.cookies).content)
 
 			profession = profession.replace("  ", "（") + "）"
@@ -340,6 +346,8 @@ class CreditStatistics(object):
 				for x in query:
 					result = Professions.objects.filter(id=x.professionId).filter(grade=self.grade).filter(college=self.college)#学院、年级相同,认为是类似计软国际班的专业
 					if len(result) > 0:#若年级符合,则认为专业需要更新.并重新进行课程查询
+						self.__init__changeProfession()
+						self.profession = result[0].profession
 						self._start(x.professionId)
 						raise Exception("更换专业")
 			# 不在其他专业的话...课程类型选错的概率比较大...故将其放入选修课程中
@@ -379,8 +387,9 @@ class CreditStatistics(object):
 
 	def _start(self, professionId=None):
 		try:
-			self._login()
-			self._getBasicInfo()
+			if professionId == None:
+				self._login()
+				self._getBasicInfo()
 			self._getRepairedCourses()
 			self._getLatestSelectionResult()
 			if professionId == None:
