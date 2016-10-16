@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="dialog">
-        <h1>你还差 {{lack}} 个 学分</h1>
+        <h1>你还差 {{ totalNeed }} 个 学分</h1>
         <br>
         <p><a href="javascript:void(0)" onclick="reset()">重置</a></p>
     </div>
@@ -29,22 +29,24 @@
                 </tr>
             </thead>
             <tbody>
+                {% for course in repairedPublicCourses %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>无</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
 
                 <tr>
                     <td colspan="6">
-                        综合必修总计：12分
+                        综合必修总计：{{ publicCreditGet }}分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量标记双修">
@@ -69,21 +71,23 @@
                 </tr>
             </thead>
             <tbody>
+                {% for course in repairedProfessionCourses %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>理</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        专业必修总计：12 分
+                        专业必修总计：{{ professionCreditGet }} 分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量标记双修">
@@ -107,21 +111,23 @@
                 </tr>
             </thead>
             <tbody>
+                {% for course in repairedProfessionElective %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>理</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        专业选修总计：12 分
+                        专业选修总计：{{ professionElectiveGet }} 分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量标记公选">
@@ -146,21 +152,23 @@
                 </tr>
             </thead>
             <tbody>
+                {% for course in repairedElective %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>文</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        公共选修总计：12 分【理科学分：2分、文科学分：2分（其中包含人文学分：2分）】
+                        公共选修总计：{{ electiveSum }} 分【理科学分：{{ electiveGet.science }}分、文科学分：{{ electiveGet.arts }}分】
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
@@ -215,10 +223,23 @@
                 </tr>
             </thead>
             <tbody>
-
+                {% for course in failCourses %}
+                <tr>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        已挂总计：0 分
+                        已挂总计：{{ failCredit }} 分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量取消标记挂科">
@@ -244,22 +265,23 @@
                 </tr>
             </thead>
             <tbody>
-
+                {% for course in nonRepairedPublicCourses %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>无</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        未修总计：12 分
+                        未修总计：{{ publicCreditNeed }} 分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
@@ -285,22 +307,23 @@
                 </tr>
             </thead>
             <tbody>
-
+                {% for course in nonRepairedProfessionCourses %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>文</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        未修总计：12 分
+                        至少需再修：{{ professionCreditNeed }} 分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
@@ -326,22 +349,23 @@
                 </tr>
             </thead>
             <tbody>
-
+                {% for course in optionalCourses %}
                 <tr>
-                    <td>20151</td>
-                    <td>0102840011</td>
-                    <td>文史哲通论</td>
-                    <td>必修</td>
-                    <td>2.0</td>
-                    <td>文</td>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
                     <td>
                         <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
                         <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
                     </td>
                 </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        未修总计：12 分
+                        未修总计：{{ electiveNeedSum }} 分【非学科专业选修至少需再修 理:{{ electiveNeed.science }} 分 文:{{ electiveNeed.arts }} 分 学科专业选修至少需再修{{ professionElectiveNeed }} 分】
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量取消标记公选">

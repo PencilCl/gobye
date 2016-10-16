@@ -21,7 +21,7 @@ class Plan(models.Model):
 
 class Courses(models.Model):
 	professionId = models.IntegerField()
-	courseNum = models.IntegerField()
+	courseNum = models.CharField(max_length=50)
 	courseName = models.CharField(max_length=200)
 	courseNameEN = models.CharField(max_length=200)
 	courseType = models.CharField(max_length=50)
