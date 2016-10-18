@@ -49,7 +49,7 @@ def result(request):
 			electiveNeed["science"] = (0.0 if tmp<0 else tmp)
 			tmp = plan["elective"] - professionElectiveGet - electiveGet["arts"] - electiveGet["science"]
 			tmp = (0.0 if tmp<0 else tmp)
-			electiveNeedSum = tmp + electiveNeed["arts"] + electiveNeed["science"]
+			electiveNeedSum = tmp + electiveNeed["arts"] + electiveNeed["science"] + professionElectiveNeed
 
 			totalNeed = publicCreditNeed + professionCreditNeed + electiveNeedSum + doubleCoursesNeed
 

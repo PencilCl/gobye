@@ -2,6 +2,7 @@
 import requests
 import base64
 import random
+import re
 
 from bs4 import BeautifulSoup
 
@@ -330,6 +331,26 @@ class CreditStatistics(object):
 			elif courseType == "学科专业选修课":
 				self.optionalCourses.append(data)
 		
+		# 获取本学院其他专业非限选专业选修课程
+		professes = Professions.objects.filter(grade=self.grade).filter(college=self.college)
+		for profess in professes:
+			if profess.id == self.professionId:
+				continue
+			query = Courses.objects.filter(professionId=profess.id).filter(courseType="学科专业选修课")
+			for course in query:
+				if course.remark == "限选":
+					continue
+				data = {
+					"termNum": course.suggestion,
+					"courseNum": course.courseNum,
+					"courseName": course.courseName,
+					"courseType": "学科专业选修课",
+					"credit": course.credit,
+					"creditType": course.creditType
+				}
+				if not data in self.optionalCourses:
+					self.optionalCourses.append(data)
+
 		if self.minorProfessionId:
 			# 获取双修/双学位课程
 			query = Courses.objects.filter(professionId=self.minorProfessionId).filter(courseType__contains=self.minorType)
@@ -392,7 +413,7 @@ class CreditStatistics(object):
 		if matchResult:# 判断是否在专业必修课程
 			self.repairedProfessionCourses.append(course)
 			self.nonRepairedProfessionCourses.remove(matchResult)
-			return 
+			return
 		matchResult = CreditStatistics._inCourseInCourseList(course, self.optionalCourses, "courseName")
 		if matchResult: # 判断是否在专业选修课程
 			self.repairedProfessionElective.append(course)
@@ -447,13 +468,23 @@ class CreditStatistics(object):
 		if course["courseType"] == "选修":
 			# 选修课则从全部课程中查找课程类型
 			query = Courses.objects.filter(courseNum=course["courseNum"])
-			if len(query) < 1:
-				# 没查到的话...放入专业选修
-				self.repairedProfessionElective.append(course)
+			if len(query) > 0:
+				course["creditType"] = query[0].creditType
 			else:
-				query = query[0]
-				course["courseType"] == query.courseType
-				self.repairedElective.append(course)
+				# 没查到的话...根据课程名再试试
+				query = Courses.objects.filter(courseName__contains=course["courseName"])
+			 	if len(query) > 0:
+			 		course["creditType"] = query[0].creditType
+			 	else: # 还查不到的话通过学校网站进行查询
+			 		courseInfo = self._getCourseInfo("03", course["courseNum"])
+			 		if not courseInfo:
+			 			courseInfo = self._getCourseInfo("02", course["courseName"])
+			 		if courseInfo:
+			 			course["creditType"] = courseInfo
+			 		else: # 无法完成匹配 则标记
+			 			print course["courseName"]
+						course["termNum"] = "*未匹配课程"
+			self.repairedElective.append(course)
 		elif course["courseType"] == "必修":
 			query = Courses.objects.filter(courseNum=course["courseNum"])
 			if self.college == self.profession: #如果必修课程在当前专业查不到且专业名等于学院名 则可能是类似计软国际班的专业
@@ -468,11 +499,36 @@ class CreditStatistics(object):
 			# 不在其他专业的话...课程类型选错的概率比较大...故将其放入选修课程中
 			if len(query) > 0:
 				course["creditType"] = query[0].creditType
-			else :
-				course["creditType"] = ("理" if self.plan["artsStream"] == 0.0 else "文")
+			# else :
+			# 	course["creditType"] = ("理" if self.plan["artsStream"] == 0.0 else "文")
 			course["termNum"] = "*未匹配课程" # 标记不确定课程
 			self.repairedElective.append(course)
 	
+	def _getCourseInfo(self, searchType, keyword):
+		'''
+			查询课程信息
+			@param searchType string
+				01 为开课单位 02 为课程名称 03 为课程总号 04 为模糊查询
+			@param keyword string 查询的内容
+			@return 学分类型 查询结果多个只返回第一个 查询不到返回None
+		'''
+		url = "http://192.168.2.224/pyfa/kc.asp"
+		params = {
+			"cxlb": searchType,
+			"keyword": keyword
+		}
+		response = requests.get(url, params=params)
+
+		self._currentHtml = response.content
+
+		html = response.content
+		regx = r'<strong>学分类别：</strong></td><td colspan=3>(\S+?)</td>'
+		pm = re.search(regx, html)
+		if pm:
+			return str(pm.group(1))[:3]
+		else:
+			return None
+
 	@staticmethod
 	def _inCourseInCourseList(course, courseList, key, key2=None):
 		'''
@@ -522,7 +578,7 @@ class CreditStatistics(object):
 				self._errorInfo = e.message
 				self._success = False
 				self._finish = True
-				
+
 				exstr = traceback.format_exc()
 				print exstr
 				# 保存错误时的页面信息
