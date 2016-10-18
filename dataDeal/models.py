@@ -1,3 +1,4 @@
+#coding:utf-8
 from __future__ import unicode_literals
 
 from django.db import models
@@ -6,6 +7,7 @@ class Professions(models.Model):
 	grade = models.IntegerField()
 	college = models.CharField(max_length=100)
 	profession = models.CharField(max_length=100)
+	url = models.CharField(max_length=200) # 培养方案url
 	def __unicode__(self):
 		return str(grade) + college + " " + profession
 
@@ -18,6 +20,8 @@ class Plan(models.Model):
 	artsStream = models.FloatField(null=True, blank=True)
 	scienceStream = models.FloatField(null=True, blank=True)
 	practice = models.FloatField()
+	minorRemark = models.CharField(max_length=1000, null=True, blank=True) # 辅修备注
+	doubleRemark = models.CharField(max_length=1000, null=True, blank=True) # 双学位备注
 
 class Courses(models.Model):
 	professionId = models.IntegerField()

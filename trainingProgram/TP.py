@@ -141,7 +141,7 @@ def getProfessionsName(colleges):
 				url = urlPre + a["href"].replace(".\\", "/")
 				
 				# 插入数据库
-				proObj = Professions(grade=grade, college=collegeList["colName"], profession=professionName)
+				proObj = Professions(grade=grade, college=collegeList["colName"], profession=professionName, url=url)
 				proObj.save()
 				# 添加到返回结果
 				result.append({
@@ -176,28 +176,40 @@ def getTrainingProgramPages(professionInfo):
 
 def handleTrainingProgramPage(html, professionId):
 	'''
-		处理单个培养费安敢页面数据
+		处理单个培养方案页面数据
 		@param html 处理页面的html代码
 		@param professionId 数据库存储的profession表id
 	'''
 	html = BeautifulSoup(html, "lxml")
 
-	print "获取培养方案学分最低要求..."
-
-	tr = html.find(id="byyq_in")
-	addPlan(tr, professionId)
-
+	minorRemark = None
+	doubleRemark = None
 	# 附表
 	x = 1
 	tr = html.find(id="fb" + str(x))
 	while tr != None:
 		print "获取附表" + str(x) + "的课程信息..."
 
-		addCourses(tr, professionId)
+		(courseType, remark) = addCourses(tr, professionId)
+		if courseType == "辅修课程":
+			minorRemark = remark
+		elif courseType == "双学位和双专业课程":
+			doubleRemark = remark
 		x += 1
 		tr = html.find(id="fb" + str(x))
 
-def addPlan(html, professionId):
+	# 获取培养方案学分最低要求...
+	
+	if minorRemark and minorRemark.find("div") != -1:
+		# 如果含div标签说明该备注为空
+		minorRemark = ""
+	if doubleRemark and doubleRemark.find("div") != -1:
+		doubleRemark = ""
+
+	tr = html.find(id="byyq_in")
+	addPlan(tr, professionId, minorRemark, doubleRemark)
+
+def addPlan(html, professionId, minorRemark, doubleRemark):
 	'''
 		学分要求table的html代码提取出学分并添加到数据库中
 		@param html table的html代码
@@ -230,7 +242,7 @@ def addPlan(html, professionId):
 	pra = tr[4]
 	pra = float(pra.find_all("td")[1].string)
 
-	Plan(professionId=professionId, publicRequired=pr, professionalRequired=proR, elective=pe, professionalElective=proEle, artsStream=artsS, scienceStream=sciS, practice=pra).save()
+	Plan(professionId=professionId, publicRequired=pr, professionalRequired=proR, elective=pe, professionalElective=proEle, artsStream=artsS, scienceStream=sciS, practice=pra, minorRemark=minorRemark, doubleRemark=doubleRemark).save()
 
 def addCourses(html, professionId):
 	'''
@@ -256,6 +268,7 @@ def addCourses(html, professionId):
 		creditType = td[15].string
 		remark = td[16].string
 		Courses(professionId=professionId, courseNum=courseNum, courseName=courseName, courseNameEN=courseNameEN, courseType=courseType, suggestion=suggestion, credit=credit, creditType=creditType, remark=remark).save()
+	return courseType, str(html.find(align="left"))[17:-5].replace("<br/>", "\n").strip()
 
 def getMCCourses():
 	'''
