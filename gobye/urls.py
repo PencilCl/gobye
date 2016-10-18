@@ -16,11 +16,13 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-from views import login, result
+from views import login, result, feedback, feedbackInfo
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     url(r'^$', login),
     url(r'^result/', result),
+    url(r'^feedback/', feedback),
+    url(r'^feedbackinfo/', feedbackInfo),
 ]

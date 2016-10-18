@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="main">
+        <div class="main" style="position: relative;">
             <div class="header">
                 <div class="title">学分统计小工具</div>
                 <div class="information"><a href="http://192.168.2.20/axsxx/AASZUstd.ASP"
@@ -27,7 +27,7 @@
                         </div>
                         <div class="row">
                             <label for="stuPwd" class="label-name"> 密 码 :</label>
-                            <input type="password" id="stuPwd" name="stuPwd" class="input-area" value="">
+                            <input type="password" id="stuPwd" name="stuPwd" class="input-area" value="" placeholder="选课密码">
                             <p class="error-hint"></p>
                         </div>
                         <div class="row">
@@ -39,6 +39,10 @@
                             <img src="data:image/bmp;base64,{{ img }}" alt="captcha" id="captcha-img">
                             <p class="error-hint"></p>
                         </div>
+                        <div class="row">
+                            <a href="feedback" style="display: inline-block;color: white;">反馈</a>
+                        </div>
+                        
                     </form>
                 </div>
                 <div class="confirm">

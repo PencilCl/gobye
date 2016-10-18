@@ -18,6 +18,8 @@ from models import Professions, Plan, Courses, MCCourses
 import os
 DEBUG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "DEBUG")
 
+import traceback
+
 class CreditStatistics(object):
 	def __init__(self, stuNum, stuPwd, captcha, cookies):
 		self.stuNum = stuNum
@@ -31,13 +33,25 @@ class CreditStatistics(object):
 		self.college = None
 		self.profession = None
 		self.professionId = None
+
+		self.minorType = None # 辅修类别
+		self.minorGrade = None # 双学位/辅修
+		self.minorCollege = None # 双学位/辅修
+		self.minorProfession = None # 双学位/辅修
+		self.minorProfessionId = None # 双学位/辅修 专业Id
+
 		self.plan = None
+		self.programUrl = [] # 用到的培养方案的url
 
 		self.__init__changeProfession()
 
 		self._finish = False
 		self._success = False
 		self._errorInfo = None
+		self._latestSelectionResultUrl = None
+		self._repairedCoursesUrl = None
+
+		self._currentHtml = ""
 
 		self._start()
 
@@ -53,19 +67,28 @@ class CreditStatistics(object):
 		self.repairedProfessionCourses = [] # 已修学科专业核心课程
 		self.repairedProfessionElective = [] # 已修学科选修课程
 		self.repairedElective = [] # 已修（除学科专业）选修课程
-		# self.repairedDoubleCourses = [] # 双学位/双专业 课程
+		self.repairedDoubleCourses = [] # 双学位/双专业 课程
 		self.nonRepairedPublicCourses = [] #未修公共课程
 		self.nonRepairedProfessionCourses = [] # 未修学科专业核心课程
 		self.optionalCourses = [] # 可选修课程
+		self.nonRepairedDoubleCourses = [] # 双学位/双专业 课程
 
 	def _getLatestSelectionResult(self):
 		'''
 			获取最新选课结果
 		'''
-		url = "http://192.168.2.20/AXSXX/zxxkjg.aspx"
+		url = self._latestSelectionResultUrl
 		response = requests.get(url, cookies=self.cookies)
+
+		self._currentHtml = response.content
+
 		html = BeautifulSoup(response.content, "lxml")
-		table = html.find(id="zxxkjgTable")
+		# table = html.find(id="zxxkjgTable")
+		table = html.find_all("table")
+		if len(table) < 2:
+			# 选课结果为空
+			return 
+		table = table[1]
 		trs = table.find_all("tr")[1:] # 除去第一个表头
 
 		# 判断最新选课结果的成绩是否已出
@@ -73,14 +96,16 @@ class CreditStatistics(object):
 			if self.repairedCourses[len(self.repairedCourses) - 1]["termNum"] == trs[0].find_all("td")[1].string:
 					# 成绩已出的话就不添加最新选课结果
 					return 
+		if len(trs) > 1:
+			tableType = len(trs[0].find_all("td")) - 11 #判断最新选课结果包不包含培养方案认定课程类型，包含则tableType = 1, 否则为0
 		for tr in trs:
 			td = tr.find_all("td")
 			data = {
 				"termNum": td[1].string.strip(),
 				"courseNum": td[2].string.strip()[:-2], # 从课程号中除去班级信息
-				"courseType": td[4].string.strip(),
-				"courseName": td[5].string.strip(),
-				"credit": float(td[6].string.strip()),
+				"courseType": td[3 + tableType].string.strip(),
+				"courseName": td[4 + tableType].string.strip(),
+				"credit": float(td[5 + tableType].string.strip()),
 				"creditType": "无"
 			}
 			self.latestSelectionResult.append(data)
@@ -89,8 +114,11 @@ class CreditStatistics(object):
 		'''
 			获取已修课程，并分离出挂科科目
 		'''
-		url = "http://192.168.2.20/AXSXX/aCHENGJISTD.asp"
+		url = self._repairedCoursesUrl
 		response = requests.get(url, cookies=self.cookies)
+
+		self._currentHtml = response.content
+
 		html = BeautifulSoup(response.content, "lxml")
 		tables = html.find_all("table")
 		for x in xrange(1, len(tables), 3):
@@ -136,6 +164,8 @@ class CreditStatistics(object):
 			"SUBMIT": "确 定"
 		}
 		response = requests.post(url, data=params, cookies=self.cookies)
+
+		self._currentHtml = response.content
 		# 登录成功返回 <script>top.location.href='../Amain.asp';</script>
 		if response.content.find("top.location.href=") == -1:
 			print "用户名或口令错误 in _login"
@@ -162,6 +192,9 @@ class CreditStatistics(object):
 			"StuXjxxcheck": 1
 		}
 		response = requests.post(url, data=params, cookies=self.cookies)
+
+		self._currentHtml = response.content
+
 		html = BeautifulSoup(response.content, "lxml")
 		# 判断招生高考信息是否为空判断是否登录成功
 		if html.find(id="lblKsh").string == None:
@@ -180,12 +213,54 @@ class CreditStatistics(object):
 			# 计算机与软件学院  数学与计算机科学实验班
 			# 计算机科学与技术（数学与计算机科学实验班）
 			# http://192.168.2.20/axsxx/sxwfx_zige.asp 双专业/双学位/辅修资格
-			print "疑似双专业" + profession
-			file(os.path.join(DEBUG_DIR, profession + "个人信息页.txt"), "wb").write(response.content)
-			file(os.path.join(DEBUG_DIR, profession + "双修资格页.txt"), "wb").write(requests.get("http://192.168.2.20/axsxx/sxwfx_zige.asp", cookies=self.cookies).content)
-
 			profession = profession.replace("  ", "（") + "）"
-		self.profession = profession
+			self.profession = profession
+		else:
+			# 查询是否为双专业为双学位
+			self._getMinorInfo()
+
+	def _getMinorInfo(self):
+		'''
+			获取双学位辅修信息
+		'''
+		url = "http://192.168.2.20/axsxx/sxwfx_zige.asp"
+		response = requests.get(url, cookies=self.cookies)
+
+		self._currentHtml = response.content
+
+		if response.content == "":
+			# 为空说明不是双修或双学位
+			return 
+		html = BeautifulSoup(response.content, "lxml")
+		td = html.form.table.find_all(width="60%")
+		self.minorGrade = int(td[1].string)
+		self.minorProfession = td[2].font.string.strip()
+		self.minorType = td[3].font.string.strip()
+		self.minorCollege = td[5].string.strip()
+
+		self._getMinorProfessionId()
+
+	def _getRelativeUrl(self):
+		'''
+			获取最新选课结果和各学期成绩的url
+		'''
+		url = "http://192.168.2.20/AXSXX/aipconstd.asp"
+		response = requests.get(url, cookies=self.cookies)
+
+		self._currentHtml = response.content
+
+		html = BeautifulSoup(response.content, "lxml")
+		aLabels = html.find_all("a")
+		for a in aLabels:
+			for aText in a.strings:
+				if aText == "最新选课情况":
+					self._latestSelectionResultUrl = "http://192.168.2.20/AXSXX/" + a["href"]
+					break
+				elif aText == "各学期成绩":
+					self._repairedCoursesUrl = "http://192.168.2.20/AXSXX/" + a["href"]
+					break
+		if self._latestSelectionResultUrl == None or self._repairedCoursesUrl == None:
+			raise Exception("获取最新选课页面URL失败")
 
 	def _getProfessionId(self):
 		'''
@@ -202,6 +277,17 @@ class CreditStatistics(object):
 			profession = profession[0]
 
 		self.professionId = profession.id
+		self.programUrl.append(profession.url)
+
+	def _getMinorProfessionId(self):
+		'''
+			获取双修双学位专业id
+		'''
+		query = Professions.objects.filter(grade=self.minorGrade).filter(college=self.minorCollege).filter(profession=self.minorProfession)
+		if len(query) < 1:
+			raise Exception("查询不到双学位或者双修专业id")
+		self.minorProfessionId = query[0].id
+		self.programUrl.append(query[0].url)
 
 	def _getPlan(self):
 		query = Plan.objects.filter(professionId=self.professionId)
@@ -217,7 +303,9 @@ class CreditStatistics(object):
 			"professionalElective": query.professionalElective,
 			"artsStream": artsStream,
 			"scienceStream": scienceStream,
-			"practice": query.practice
+			"practice": query.practice,
+			"minorRemark": query.minorRemark,
+			"doubleRemark": query.doubleRemark
 		}
 
 	def _getCourses(self):
@@ -241,6 +329,20 @@ class CreditStatistics(object):
 				self.nonRepairedProfessionCourses.append(data)
 			elif courseType == "学科专业选修课":
 				self.optionalCourses.append(data)
+		
+		if self.minorProfessionId:
+			# 获取双修/双学位课程
+			query = Courses.objects.filter(professionId=self.minorProfessionId).filter(courseType__contains=self.minorType)
+			for course in query:
+				data = {
+					"termNum": course.suggestion,
+					"courseNum": course.courseNum,
+					"courseName": course.courseName,
+					"courseType": course.courseType,
+					"credit": course.credit,
+					"creditType": course.creditType
+				}
+				self.nonRepairedDoubleCourses.append(data)
 
 	def _retakeCourses(self):
 		'''
@@ -296,6 +398,12 @@ class CreditStatistics(object):
 			self.repairedProfessionElective.append(course)
 			self.optionalCourses.remove(matchResult)
 			return
+		matchResult = CreditStatistics._inCourseInCourseList(course, self.nonRepairedDoubleCourses, "courseName")
+		if matchResult: # 判断是否在双专业/辅修课程中
+			course["creditType"] = matchResult["creditType"]
+			self.repairedDoubleCourses.append(course)
+			self.nonRepairedDoubleCourses.remove(course)
+			return
 		# 都不在的话...放进选修列表中
 		self.repairedElective.append(course)
 
@@ -329,6 +437,12 @@ class CreditStatistics(object):
 			self.repairedProfessionElective.append(course)
 			self.optionalCourses.remove(matchResult)
 			return
+		matchResult = CreditStatistics._inCourseInCourseList(course, self.nonRepairedDoubleCourses, "courseNum", "courseName")
+		if matchResult: # 判断是否在双专业/辅修课程中
+			course["creditType"] = matchResult["creditType"]
+			self.repairedDoubleCourses.append(course)
+			self.nonRepairedDoubleCourses.remove(matchResult)
+			return
 		# 都不在的话m 判断课程类型
 		if course["courseType"] == "选修":
 			# 选修课则从全部课程中查找课程类型
@@ -348,6 +462,7 @@ class CreditStatistics(object):
 					if len(result) > 0:#若年级符合,则认为专业需要更新.并重新进行课程查询
 						self.__init__changeProfession()
 						self.profession = result[0].profession
+						self.programUrl.append(result[0].url)
 						self._start(x.professionId)
 						raise Exception("更换专业")
 			# 不在其他专业的话...课程类型选错的概率比较大...故将其放入选修课程中
@@ -355,6 +470,7 @@ class CreditStatistics(object):
 				course["creditType"] = query[0].creditType
 			else :
 				course["creditType"] = ("理" if self.plan["artsStream"] == 0.0 else "文")
+			course["termNum"] = "*未匹配课程" # 标记不确定课程
 			self.repairedElective.append(course)
 	
 	@staticmethod
@@ -390,6 +506,7 @@ class CreditStatistics(object):
 			if professionId == None:
 				self._login()
 				self._getBasicInfo()
+				self._getRelativeUrl()
 			self._getRepairedCourses()
 			self._getLatestSelectionResult()
 			if professionId == None:
@@ -405,7 +522,11 @@ class CreditStatistics(object):
 				self._errorInfo = e.message
 				self._success = False
 				self._finish = True
-				print self._errorInfo
+				
+				exstr = traceback.format_exc()
+				print exstr
+				# 保存错误时的页面信息
+				file(os.path.join(DEBUG_DIR, self.stuNum + self._errorInfo + ".txt"), "wb").write(exstr + "\n" + self._currentHtml)
 			return
 		
 		self._success = True

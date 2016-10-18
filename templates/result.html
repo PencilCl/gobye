@@ -11,6 +11,7 @@
 <body>
     <div class="dialog">
         <h1>你还差 {{ totalNeed }} 个 学分</h1>
+        <p><a href="/feedback" style="display: inline-block;color: red;font-size: 18px">反馈</a></p>
         <br>
         <p><a href="javascript:void(0)" onclick="reset()">重置</a></p>
     </div>
@@ -178,10 +179,9 @@
         </table>
 
     </div>
-<!--     <div class="pretty-table double">
-
+    <div class="pretty-table double">
         <table cellpadding="0" cellspacing="0" border="0">
-            <caption>辅修、双专业、双学位</caption>
+            <caption>辅修、双专业、双学位(已修)</caption>
             <thead>
                 <tr>
                     <th>学期号</th>
@@ -194,10 +194,23 @@
                 </tr>
             </thead>
             <tbody>
-
+                {% for course in repairedDoubleCourses %}
+                <tr>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                {% endfor %}
                 <tr>
                     <td colspan="6">
-                        双修总计：0 分
+                        双修总计：{{ doubleCoursesGet }}分
                     </td>
                     <td>
                         <input type="submit" onclick="move_group(this)" value="批量取消标记双修">
@@ -206,7 +219,7 @@
             </tbody>
         </table>
 
-    </div> -->
+    </div>
     <div class="pretty-table failed">
 
         <table cellpadding="0" cellspacing="0" border="0">
@@ -375,5 +388,67 @@
         </table>
 
     </div>
+    <div class="pretty-table remain">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+        <caption>辅修、双专业、双学位(可修)</caption>
+            <thead>
+                <tr>
+                    <th>建议修读学期</th>
+                    <th>课程号</th>
+                    <th>课程名</th>
+                    <th>课程类别</th>
+                    <th>学分</th>
+                    <th>学分类别</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in nonRepairedDoubleCourses %}
+                <tr>
+                    <td>{{ course.termNum }}</td>
+                    <td>{{ course.courseNum }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseType }}</td>
+                    <td>{{ course.credit }}</td>
+                    <td>{{ course.creditType }}</td>
+                    <td>
+                        <a href="#">标记挂科</a> | <a href="#">标记公选</a> | <a href="#">标记双修</a>
+                        <span class="check-button"><input name="id" type="checkbox" value="105217"></span>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="7">辅修备注:{{ minorRemark }}</td>
+                </tr>
+                <tr>
+                    <td colspan="7">双学位/双专业备注:{{ doubleRemark }}</td>
+                </tr>
+                <tr>
+                    <td colspan="6">
+                        可修总学分: {{ doubleCoursesNeed }} 分
+                    </td>
+                    <td>
+                        <input type="submit" onclick="move_group(this)" value="批量取消标记公选">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="pretty-table remain">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+        <caption>此次分析所用到的培养方案</caption>
+            <tbody>
+                {% for url in programUrl %}
+                <tr>
+                    <td colspan="7">
+                        <a href="{{ url }}" target="blank">{{ url }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 </body>
 </html>

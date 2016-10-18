@@ -5,6 +5,10 @@ from django.http import HttpResponseRedirect
 
 from dataDeal.creditStatistics import CreditStatistics
 
+import os
+DEBUG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "DEBUG")
+
+
 def login(request):
 	error = request.GET.get("error", "")
 	(img, cookie) = CreditStatistics.getCaptcha()
@@ -29,10 +33,15 @@ def result(request):
 			electiveGet = divedeArtsAndScienceCredit(cs.repairedElective)
 			electiveSum = electiveGet["arts"] + electiveGet["science"]
 			failCredit = sum(cs.failCourses)
+			doubleCoursesGet = sum(cs.repairedDoubleCourses)
 			publicCreditNeed = plan["publicRequired"] - publicCreditGet
 			professionCreditNeed = plan["professionalRequired"] - professionCreditGet
 			tmp = plan["professionalElective"] - professionElectiveGet
 			professionElectiveNeed = (0.0 if tmp<0 else tmp)
+			doubleCoursesNeed = sum(cs.nonRepairedDoubleCourses)
+			minorRemark = plan["minorRemark"]
+			doubleRemark = plan["doubleRemark"]
+
 			electiveNeed = {}
 			tmp = plan["artsStream"] - electiveGet["arts"]
 			electiveNeed["arts"] = (0.0 if tmp<0 else tmp)
@@ -41,8 +50,9 @@ def result(request):
 			tmp = plan["elective"] - professionElectiveGet - electiveGet["arts"] - electiveGet["science"]
 			tmp = (0.0 if tmp<0 else tmp)
 			electiveNeedSum = tmp + electiveNeed["arts"] + electiveNeed["science"]
-			totalNeed = publicCreditNeed + professionCreditNeed + electiveNeedSum
-			
+
+			totalNeed = publicCreditNeed + professionCreditNeed + electiveNeedSum + doubleCoursesNeed
+
 			params = {
 				"repairedPublicCourses":cs.repairedPublicCourses, 
 				"repairedProfessionCourses":cs.repairedProfessionCourses, 
@@ -52,6 +62,8 @@ def result(request):
 				"nonRepairedPublicCourses":cs.nonRepairedPublicCourses, 
 				"nonRepairedProfessionCourses":cs.nonRepairedProfessionCourses, 
 				"optionalCourses":cs.optionalCourses,
+				"repairedDoubleCourses": cs.repairedDoubleCourses,
+				"nonRepairedDoubleCourses": cs.nonRepairedDoubleCourses,
 				"publicCreditGet":publicCreditGet,
 				"publicCreditNeed":publicCreditNeed,
 				"professionCreditGet":professionCreditGet,
@@ -63,7 +75,12 @@ def result(request):
 				"electiveNeed":electiveNeed,
 				"electiveNeedSum":electiveNeedSum,
 				"failCredit":failCredit,
-				"totalNeed":totalNeed
+				"doubleCoursesGet": doubleCoursesGet,
+				"doubleRemark": doubleRemark,
+				"minorRemark": minorRemark,
+				"doubleCoursesNeed": doubleCoursesNeed,
+				"totalNeed":totalNeed,
+				"programUrl": cs.programUrl
 			}
 			return render(request, 'result.html', params)
 
@@ -90,3 +107,24 @@ def sum(dic):
 	for x in dic:
 		result += float(x["credit"])
 	return result
+
+def feedback(request):
+	return render(request, 'feedback.html')
+
+def feedbackInfo(request):
+	if request.method == "POST":
+		contact = request.POST.get("contact", "")
+		content = request.POST.get("content", "")
+		fil = open(os.path.join(DEBUG_DIR, "feedback.txt"), "rw+")
+		filecontent = fil.readlines()
+		tmpContent = ""
+		for tmp in filecontent:
+			tmpContent += tmp
+		fil.close()
+		file(os.path.join(DEBUG_DIR, "feedback.txt"), "wb").write(tmpContent + "\n" + "contact:" + contact + "content:" + content)
+		
+		return render(request, 'feedbackInfo.html')
+	else :
+		return HttpResponseRedirect("/")
+
+		
