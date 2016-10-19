@@ -48,8 +48,7 @@ def result(request):
 			tmp = plan["scienceStream"] - electiveGet["science"]
 			electiveNeed["science"] = (0.0 if tmp<0 else tmp)
 			tmp = plan["elective"] - professionElectiveGet - electiveGet["arts"] - electiveGet["science"]
-			tmp = (0.0 if tmp<0 else tmp)
-			electiveNeedSum = tmp + electiveNeed["arts"] + electiveNeed["science"] + professionElectiveNeed
+			electiveNeedSum = ((electiveNeed["arts"] + electiveNeed["science"] + professionElectiveNeed) if tmp<0 else tmp)
 
 			totalNeed = publicCreditNeed + professionCreditNeed + electiveNeedSum + doubleCoursesNeed
 
@@ -64,6 +63,7 @@ def result(request):
 				"optionalCourses":cs.optionalCourses,
 				"repairedDoubleCourses": cs.repairedDoubleCourses,
 				"nonRepairedDoubleCourses": cs.nonRepairedDoubleCourses,
+				"uncertainCourses": cs.uncertainCourses,
 				"publicCreditGet":publicCreditGet,
 				"publicCreditNeed":publicCreditNeed,
 				"professionCreditGet":professionCreditGet,
