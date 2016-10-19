@@ -74,6 +74,8 @@ class CreditStatistics(object):
 		self.optionalCourses = [] # 可选修课程
 		self.nonRepairedDoubleCourses = [] # 双学位/双专业 课程
 
+		self.uncertainCourses = [] # 未在培养方案中查找到的必修课程
+
 	def _getLatestSelectionResult(self):
 		'''
 			获取最新选课结果
@@ -316,14 +318,7 @@ class CreditStatistics(object):
 		query = Courses.objects.filter(professionId=self.professionId)
 		for course in query:
 			courseType = course.courseType
-			data = {
-					"termNum": course.suggestion,
-					"courseNum": course.courseNum,
-					"courseName": course.courseName,
-					"courseType": course.courseType,
-					"credit": course.credit,
-					"creditType": course.creditType
-			}
+			data = self._querySetToDic(course)
 			if courseType == "公共必修课":
 				self.nonRepairedPublicCourses.append(data)
 			elif courseType == "学科专业核心课":
@@ -340,14 +335,7 @@ class CreditStatistics(object):
 			for course in query:
 				if course.remark == "限选":
 					continue
-				data = {
-					"termNum": course.suggestion,
-					"courseNum": course.courseNum,
-					"courseName": course.courseName,
-					"courseType": "学科专业选修课",
-					"credit": course.credit,
-					"creditType": course.creditType
-				}
+				data = self._querySetToDic(course)
 				if not data in self.optionalCourses:
 					self.optionalCourses.append(data)
 
@@ -355,14 +343,7 @@ class CreditStatistics(object):
 			# 获取双修/双学位课程
 			query = Courses.objects.filter(professionId=self.minorProfessionId).filter(courseType__contains=self.minorType)
 			for course in query:
-				data = {
-					"termNum": course.suggestion,
-					"courseNum": course.courseNum,
-					"courseName": course.courseName,
-					"courseType": course.courseType,
-					"credit": course.credit,
-					"creditType": course.creditType
-				}
+				data = self._querySetToDic(course)
 				self.nonRepairedDoubleCourses.append(data)
 
 	def _retakeCourses(self):
@@ -481,9 +462,9 @@ class CreditStatistics(object):
 			 			courseInfo = self._getCourseInfo("02", course["courseName"])
 			 		if courseInfo:
 			 			course["creditType"] = courseInfo
-			 		else: # 无法完成匹配 则标记
-			 			print course["courseName"]
-						course["termNum"] = "*未匹配课程"
+			 		else: # 无法完成匹配 放入不确定课程
+						self.uncertainCourses.append(course)
+						return 
 			self.repairedElective.append(course)
 		elif course["courseType"] == "必修":
 			query = Courses.objects.filter(courseNum=course["courseNum"])
@@ -496,14 +477,27 @@ class CreditStatistics(object):
 						self.programUrl.append(result[0].url)
 						self._start(x.professionId)
 						raise Exception("更换专业")
-			# 不在其他专业的话...课程类型选错的概率比较大...故将其放入选修课程中
+			# 不在其他专业的话...归入不确定课程，让使用者自己放位置
 			if len(query) > 0:
 				course["creditType"] = query[0].creditType
 			# else :
 			# 	course["creditType"] = ("理" if self.plan["artsStream"] == 0.0 else "文")
-			course["termNum"] = "*未匹配课程" # 标记不确定课程
-			self.repairedElective.append(course)
+			self.uncertainCourses.append(course)
 	
+	def _querySetToDic(self, querySet):
+		'''
+			将查询到的课程结果生成字典形式
+		'''
+		data = {
+			"termNum": self._getTermNum(self.grade, querySet.suggestion),
+			"courseNum": querySet.courseNum,
+			"courseName": querySet.courseName,
+			"courseType": querySet.courseType,
+			"credit": querySet.credit,
+			"creditType": querySet.creditType
+		}
+		return data
+
 	def _getCourseInfo(self, searchType, keyword):
 		'''
 			查询课程信息
@@ -528,6 +522,21 @@ class CreditStatistics(object):
 			return str(pm.group(1))[:3]
 		else:
 			return None
+
+	def _getTermNum(self, grade, suggestion):
+		'''
+			通过年级+建议修读学期计算得到学期号 
+			如grade=2015, suggestion=4 则返回20162
+			@param grade 年级
+			@param suggestion 建议修读学期
+			@return
+		'''
+		suggestion -= 1
+		year = int(suggestion/2)
+		grade += year
+		grade = str(grade)
+		grade += str(suggestion % 2 + 1)
+		return grade
 
 	@staticmethod
 	def _inCourseInCourseList(course, courseList, key, key2=None):
