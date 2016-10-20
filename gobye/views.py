@@ -26,32 +26,8 @@ def result(request):
 			time.sleep(1)
 		if cs.success:
 			plan = cs.plan
-
-			publicCreditGet = sum(cs.repairedPublicCourses)
-			professionCreditGet = sum(cs.repairedProfessionCourses)
-			professionElectiveGet = sum(cs.repairedProfessionElective)
-			electiveGet = divedeArtsAndScienceCredit(cs.repairedElective)
-			electiveSum = electiveGet["arts"] + electiveGet["science"]
-			failCredit = sum(cs.failCourses)
-			doubleCoursesGet = sum(cs.repairedDoubleCourses)
-			publicCreditNeed = plan["publicRequired"] - publicCreditGet
-			professionCreditNeed = plan["professionalRequired"] - professionCreditGet
-			tmp = plan["professionalElective"] - professionElectiveGet
-			professionElectiveNeed = (0.0 if tmp<0 else tmp)
-			doubleCoursesNeed = sum(cs.nonRepairedDoubleCourses)
 			minorRemark = plan["minorRemark"]
 			doubleRemark = plan["doubleRemark"]
-
-			electiveNeed = {}
-			tmp = plan["artsStream"] - electiveGet["arts"]
-			electiveNeed["arts"] = (0.0 if tmp<0 else tmp)
-			tmp = plan["scienceStream"] - electiveGet["science"]
-			electiveNeed["science"] = (0.0 if tmp<0 else tmp)
-			tmp = plan["elective"] - professionElectiveGet - electiveGet["arts"] - electiveGet["science"]
-			electiveNeedSum = ((electiveNeed["arts"] + electiveNeed["science"] + professionElectiveNeed) if tmp<0 else tmp)
-
-			totalNeed = publicCreditNeed + professionCreditNeed + electiveNeedSum + doubleCoursesNeed
-
 			params = {
 				"repairedPublicCourses":cs.repairedPublicCourses, 
 				"repairedProfessionCourses":cs.repairedProfessionCourses, 
@@ -64,23 +40,15 @@ def result(request):
 				"repairedDoubleCourses": cs.repairedDoubleCourses,
 				"nonRepairedDoubleCourses": cs.nonRepairedDoubleCourses,
 				"uncertainCourses": cs.uncertainCourses,
-				"publicCreditGet":publicCreditGet,
-				"publicCreditNeed":publicCreditNeed,
-				"professionCreditGet":professionCreditGet,
-				"professionCreditNeed":professionCreditNeed,
-				"professionElectiveGet":professionElectiveGet,
-				"professionElectiveNeed":professionElectiveNeed,
-				"electiveGet":electiveGet,
-				"electiveSum":electiveSum,
-				"electiveNeed":electiveNeed,
-				"electiveNeedSum":electiveNeedSum,
-				"failCredit":failCredit,
-				"doubleCoursesGet": doubleCoursesGet,
 				"doubleRemark": doubleRemark,
 				"minorRemark": minorRemark,
-				"doubleCoursesNeed": doubleCoursesNeed,
-				"totalNeed":totalNeed,
-				"programUrl": cs.programUrl
+				"programUrl": cs.programUrl,
+				"publicRequired": plan["publicRequired"],
+				"professionalElective": plan["professionalElective"],
+				"artsStream": plan["artsStream"],
+				"scienceStream": plan["scienceStream"],
+				"elective": plan["elective"],
+				"professionalRequired": plan["professionalRequired"]
 			}
 			return render(request, 'result.html', params)
 
@@ -89,24 +57,6 @@ def result(request):
 
 	# 非POST方法跳转到登录页面
 	return HttpResponseRedirect("/")
-
-def divedeArtsAndScienceCredit(dic):
-	result = {
-		"arts": 0.0,
-		"science":0.0
-	}
-	for x in dic:
-		if x["creditType"] == "文":
-			result["arts"] += x["credit"]
-		elif x["creditType"] == "理":
-			result["science"] += x["credit"]
-	return result
-
-def sum(dic):
-	result = 0.0
-	for x in dic:
-		result += float(x["credit"])
-	return result
 
 def feedback(request):
 	return render(request, 'feedback.html')

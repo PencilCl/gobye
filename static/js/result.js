@@ -8,85 +8,40 @@ function reset() {
 }
 // 移动一门课程
 function move_one(e) {
-    if ($(e).html() === "标记挂科") {
-        var $tr = $(e).parent().parent();
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">取消标记挂科</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".failed tbody tr:last");
-        $tr.remove();
-    } else if ($(e).html() === "标记公选") {
-        var $tr = $(e).parent().parent();
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">取消标记公选</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".public-select tbody tr:last");
-        $tr.remove();
-    } else if ($(e).html() === "标记双修") {
-        var $tr = $(e).parent().parent();
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记公选</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">取消标记双修</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".double tbody tr:last");
-        $tr.remove();
-    } else if ($(e).html().substring(0, 2) === "取消") {
-        var $tr = $(e).parent().parent();
-        move_back($tr);
+    selectedValue = $(e).val();
+    selectedText = $(e).find("option:selected").text();
+    if (selectedValue === "null") {
+        return 
     }
-}
-// 批量撤销
-function move_group(e) {
-    var mode = $(e).attr("value");
-    if (mode === "批量标记双修") {
-        $(e).parent().parent().parent().find("input[name='id']:checked").each(function () {
-            var $tr = $(this).parent().parent();
-            $(this).parent().html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-                '<a href="javascript:void(0)" onclick="move_one(this)">标记公选</a>' + ' | ' +
-                '<a href="javascript:void(0)" onclick="move_one(this)">取消标记双修</a>' + '<input name ="id" type="checkbox">');
-            $("<tr>" + $tr.html() + "</tr>").insertBefore(".double tbody tr:last");
-            $tr.remove();
-        });
-    } else if (mode === "批量标记公选") {
-        $(e).parent().parent().parent().find("input[name='id']:checked").each(function () {
-            var $tr = $(this).parent().parent();
-            $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-                '<a href="javascript:void(0)" onclick="move_one(this)">取消标记公选</a>' + '<input name ="id" type="checkbox">');
-            $("<tr>" + $tr.html() + "</tr>").insertBefore(".public-select tbody tr:last");
-            $tr.remove();
-        });
-    } else if (mode.substring(0, 4) === "批量取消") {
-        $(e).parent().parent().parent().find("input[name='id']:checked").each(function () {
-            var $tr = $(this).parent().parent();
-            move_back($tr);
-        })
+    htmlCode = '<select onchange="move_one(this)"><option value="null">无</option><option value="failed">标记挂科</option><option value="public-must">标记公共必修</option><option value="profession-must">标记专业必修</option><option value="profession-select">标记专业选修</option><option value="arts-public-select">标记公共选修(文科)</option><option value="science-public-select">标记公共选修(理科)</option><option value="double">标记双修</option></select>';
+    var $tr = $(e).parent().parent();
+    htmlCode = htmlCode.replace('<option value="' + selectedValue + '">' + selectedText + '</option>', "");
+    if (selectedValue.indexOf("arts") != -1) {
+        $tr.find("td").eq(6).text("文");
+        selectedValue = selectedValue.substr(5);
+    } else if (selectedValue.indexOf("science") != -1) {
+        $tr.find("td").eq(6).text("理");
+        selectedValue = selectedValue.substr(8);
     }
+    $tr.find("td:last").html(htmlCode);
+    $("<tr>" + $tr.html() + "</tr>").insertBefore("." + selectedValue + " tbody tr:last");
+    $tr.remove();
+    calculate();
 }
-// 使一门课程回到原位置
-function move_back($tr) {
-    var mode = $tr.find("td:eq(4)").html();
-    if (mode === "公共必修课" || mode === "综合必修") {
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记公选</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记双修</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".public-must tbody tr:last");
-        $tr.remove();
-    } else if (mode === "公共选修课") {
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">取消标记公选</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".public-select tbody tr:last");
-        $tr.remove();
-    } else if (mode === "学科专业核心课") {
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记公选</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记双修</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".profession-must tbody tr:last");
-        $tr.remove();
-    } else if (mode === "学科专业选修课") {
-        $tr.find("td:last").html('<a href="javascript:void(0)" onclick="move_one(this)">标记挂科</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记公选</a>' + ' | ' +
-            '<a href="javascript:void(0)" onclick="move_one(this)">标记双修</a>' + '<input name ="id" type="checkbox">');
-        $("<tr>" + $tr.html() + "</tr>").insertBefore(".profession-select tbody tr:last");
-        $tr.remove();
+// 批量移动
+function move_all(e) {
+    selectedValue = $(e).val();
+    if (selectedValue == "null") {
+        return 
     }
-}
-// 计算学分总分
-function calculate() {
-
+    $tbody = $(e).parent().parent().parent();
+    $checkbox = $tbody.find('input:checked');
+    $select = $checkbox.eq(0).parent().parent().find("select:first");
+    $select.val(selectedValue);
+    $select.trigger("change");
+    if ($checkbox.length > 1) {
+        move_all(e);
+    } else {
+        $(e).val("null");
+    }
 }
