@@ -26,6 +26,7 @@ def result(request):
 			time.sleep(1)
 		if cs.success:
 			plan = cs.plan
+			double = cs.minorProfessionId
 			minorRemark = plan["minorRemark"]
 			doubleRemark = plan["doubleRemark"]
 			params = {
@@ -48,7 +49,8 @@ def result(request):
 				"artsStream": plan["artsStream"],
 				"scienceStream": plan["scienceStream"],
 				"elective": plan["elective"],
-				"professionalRequired": plan["professionalRequired"]
+				"professionalRequired": plan["professionalRequired"],
+				"double": double
 			}
 			return render(request, 'result.html', params)
 

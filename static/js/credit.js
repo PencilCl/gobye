@@ -1,3 +1,41 @@
+$(function editableCredit() {
+    $(".editableCredit").click(function() {
+        handleAlterCredit(this);
+    });
+});
+
+/**
+ * 处理点击学分进行修改
+ * @param  {} e 存放学分的span节点
+ * @return
+ */
+function handleAlterCredit(e) {
+    name = $(e).attr("name");
+    value = parseFloat($(e).text());
+    $td = $(e).parent();
+    preHtml = $td.html();
+    nowHtml = preHtml.replace('<span class="editableCredit" name="' + name + '">' + format(value) + '</span>', '<input type="text" name="' + name + '" value="' + format(value) + '">')
+    $td.html(nowHtml);
+    $input = $td.find('input[name="' + name + '"]');
+    $input.focus();
+    $input.blur(function() {
+        tmp = parseFloat($(this).val());
+        if (tmp || tmp === 0) {
+            preHtml = $td.html();
+            nowHtml = preHtml.replace('<input type="text" name="' + name + '" value="' + format(value) + '">', '<span class="editableCredit" name="' + name + '">' + format(tmp) + '</span>')
+            $td.html(nowHtml);
+            // 重新添加click事件
+            $td.find('.editableCredit').click(function() {
+                handleAlterCredit(this);
+            });
+            plan[name] = tmp;
+            calculate();
+        } else {
+            $(this).focus();
+        }
+    });
+}
+
 calculate();
 /**
  * 统计学分
@@ -7,11 +45,12 @@ calculate();
 function sum(doms) {
     result = 0.0;
     doms.each(function() {
-        tmp = parseFloat($(this).find("td").eq(5).text());
-        if (tmp) {
-            result += parseFloat($(this).find("td").eq(5).text());
+        $td = $(this).find("td");
+        if ($td.length > 6) {
+            result += parseFloat($td.eq(5).text());
+        } else if ($td.length > 5) {
+            result += parseFloat($td.eq(4).text());
         }
-        console.log(result);
     });
     return result;
 }
@@ -60,21 +99,22 @@ function calculate() {
     $("#publicCreditNeed").text(format(publicCreditNeed));
     $("#professionCreditNeed").text(format(professionCreditNeed));
     tmp = plan["professionalElective"] - professionElectiveGet;
-    $("#professionElectiveNeed").text(format(tmp<0?0.0:tmp));
+    professionElectiveNeed = tmp<0?0.0:tmp;
+    $("#professionElectiveNeed").text(format(professionElectiveNeed));
     $("#doubleCoursesNeed").text(format(doubleCoursesNeed));
 
     electiveNeed = {};
     tmp = plan.artsStream - electiveGet.arts;
     electiveNeed.arts = (tmp<0?0.0:tmp);
-    tmp = plan.scienceStream - electiveGet.science
+    tmp = plan.scienceStream - electiveGet.science;
     electiveNeed.science = (tmp<0?0.0:tmp);
     tmp = plan.elective - professionElectiveGet - electiveGet.arts - electiveGet.science;
-    electiveNeedSum = tmp<0?(electiveNeed.arts + electiveNeed.science + professionElectiveNeed):tmp
+    electiveNeedSum = tmp<0?(electiveNeed.arts + electiveNeed.science + professionElectiveNeed):tmp;
     $("#electiveNeedarts").text(format(electiveNeed.arts));
     $("#electiveNeedscience").text(format(electiveNeed.science));
     $("#electiveNeedSum").text(format(electiveNeedSum));
 
-    $("#totalNeed").text(format(publicCreditNeed + professionCreditNeed + electiveNeedSum + doubleCoursesNeed));
+    $("#totalNeed").text(format(publicCreditNeed + professionCreditNeed + electiveNeedSum + plan.double - doubleCoursesGet));
 }
 /**
  * 格式化学分，保留一位小数

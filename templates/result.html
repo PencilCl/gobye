@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.5">
     <title>Title</title>
     <link rel="stylesheet" href="/static/css/result.css">
+</head>
+<body>
     <script>
         plan = {
             "publicRequired": {{ publicRequired }},
@@ -12,21 +14,57 @@
             "artsStream": {{ artsStream }},
             "scienceStream": {{ scienceStream }},
             "elective": {{ elective }},
-            "professionalRequired": {{ professionalRequired }}
+            "professionalRequired": {{ professionalRequired }},
+            "double": 0.0
         };
     </script>
-</head>
-<body>
     <div class="dialog">
         <h1>你还差 <strong id="totalNeed"></strong> 个 学分</h1>
         <p><a href="/feedback" style="display: inline-block;color: red;font-size: 18px">反馈</a></p>
         <br>
         <p><a href="javascript:void(0)" onclick="reset()">重置</a></p>
     </div>
+    <div class="pretty-table">
+
+        <table cellpadding="0" cellspacing="0" border="0">
+            <caption>毕业最低学分要求</caption>
+            <thead>
+                <tr>
+                    <th>课程类别</th>
+                    <th>最低学分要求(单击修改)</th>
+                    <th>附加要求</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>公共必修课</td>
+                    <td><span class="editableCredit" name="publicRequired">{{ publicRequired }}</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>专业必修课</td>
+                    <td><span class="editableCredit" name="professionalRequired">{{ professionalRequired }}</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>选修课</td>
+                    <td><span class="editableCredit" name="elective">{{ elective }}</span></td>
+                    <td>专业选修<span class="editableCredit" name="professionalElective">{{ professionalElective }}</span>分,文科<span class="editableCredit" name="artsStream">{{ artsStream }}</span>分,理科<span class="editableCredit" name="scienceStream">{{ scienceStream }}</span>分</td>
+                </tr>
+                {% if double %}
+                <tr>
+                    <td>双学位/双专业 | 辅修</td>
+                    <td><span class="editableCredit" name="double">0.0</span></td>
+                    <td>辅修备注:{{ minorRemark }}<br>双修备注:{{ doubleRemark }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
     <div class="pretty-table match-error">
 
         <table cellpadding="0" cellspacing="0" border="0">
-        <caption>未匹配成功课程</caption>
+            <caption>未匹配成功课程</caption>
             <thead>
                 <tr>
                     <th></th>
@@ -482,7 +520,7 @@
     <div class="pretty-table profession-must-need">
 
         <table cellpadding="0" cellspacing="0" border="0">
-        <caption>学科专业核心课(需修)</caption>
+            <caption>学科专业核心课(需修)</caption>
             <thead>
                 <tr>
                     <th>建议修读学期</th>
@@ -516,7 +554,7 @@
     <div class="pretty-table select-need">
 
         <table cellpadding="0" cellspacing="0" border="0">
-        <caption>可修选修列表</caption>
+            <caption>可修选修列表</caption>
             <thead>
                 <tr>
                     <th>建议修读学期</th>
@@ -547,10 +585,11 @@
         </table>
 
     </div>
+    {% if double %}
     <div class="pretty-table double-need">
 
         <table cellpadding="0" cellspacing="0" border="0">
-        <caption>辅修、双专业、双学位(可修)</caption>
+            <caption>辅修、双专业、双学位(可修)</caption>
             <thead>
                 <tr>
                     <th>建议修读学期</th>
@@ -587,10 +626,11 @@
         </table>
 
     </div>
+    {% endif %}
     <div class="pretty-table">
 
         <table cellpadding="0" cellspacing="0" border="0">
-        <caption>此次分析所用到的培养方案</caption>
+            <caption>此次分析所用到的培养方案</caption>
             <tbody>
                 {% for url in programUrl %}
                 <tr>
@@ -601,8 +641,10 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
 </body>
-<script src="/static/js/jquery.min.js"></script>
+<script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+<!-- <script src="/static/js/jquery.min.js"></script> -->
 <script src="/static/js/credit.js"></script>
 <script src="/static/js/result.js"></script>
 </html>
