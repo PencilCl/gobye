@@ -2,6 +2,11 @@ $(function editableCredit() {
     $(".editableCredit").click(function() {
         handleAlterCredit(this);
     });
+    // 初始化双修最低学分
+    plan.double = sum($(".double tbody tr")) + sum($(".double-need tbody tr"));
+    $('#doubleInit').text(format(plan.double));
+
+    calculate();
 });
 
 /**
@@ -42,7 +47,7 @@ function handleAlterCredit(e) {
     });
 }
 
-calculate();
+
 /**
  * 统计学分
  * @param  {列表} doms 需要统计的课程表下所有的tr
