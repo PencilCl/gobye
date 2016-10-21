@@ -17,6 +17,12 @@ function handleAlterCredit(e) {
     nowHtml = preHtml.replace('<span class="editableCredit" name="' + name + '">' + format(value) + '</span>', '<input type="text" name="' + name + '" value="' + format(value) + '">')
     $td.html(nowHtml);
     $input = $td.find('input[name="' + name + '"]');
+    // 添加回车自动确定
+    $input.keydown(function(e) {
+        if (e.which == 13) {
+            $(this).blur();
+        }
+    });
     $input.focus();
     $input.blur(function() {
         tmp = parseFloat($(this).val());
