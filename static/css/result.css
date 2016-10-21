@@ -97,4 +97,22 @@ a {
   opacity: 0.8;
 }
 
+.pretty-table input[type=text] {
+  margin: 0;
+  height: 1.8em;
+  width: 5em;
+  font-size: 1em;
+  opacity: 0.8;
+  color: white;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+select {
+  color: #fff;
+  font-size: 0.8em;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background-color: transparent;
+}
+
 /*# sourceMappingURL=result.css.map */
