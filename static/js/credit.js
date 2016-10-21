@@ -1,12 +1,13 @@
 $(function editableCredit() {
+    // 初始化双修最低学分
+    plan.double = sum($(".double tbody tr")) + sum($(".double-need tbody tr"));
+    $(".editableCredit").eq(6).text(format(plan.double));
+
+    calculate();
+
     $(".editableCredit").click(function() {
         handleAlterCredit(this);
     });
-    // 初始化双修最低学分
-    plan.double = sum($(".double tbody tr")) + sum($(".double-need tbody tr"));
-    $('#doubleInit').text(format(plan.double));
-
-    calculate();
 });
 
 /**
