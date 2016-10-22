@@ -50,7 +50,9 @@ def result(request):
 				"scienceStream": plan["scienceStream"],
 				"elective": plan["elective"],
 				"professionalRequired": plan["professionalRequired"],
-				"double": double
+				"double": double,
+				"profession": cs.profession,
+				"college": cs.college
 			}
 			return render(request, 'result.html', params)
 

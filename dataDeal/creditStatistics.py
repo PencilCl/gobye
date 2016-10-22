@@ -111,6 +111,9 @@ class CreditStatistics(object):
 				"credit": float(td[5 + tableType].string.strip()),
 				"creditType": "无"
 			}
+			matchCourse = self._inCourseInCourseList(data, self.failCourses, "courseNum", "courseName");
+			if matchCourse:
+				self.failCourses.remove(matchCourse)
 			self.latestSelectionResult.append(data)
 
 	def _getRepairedCourses(self):
@@ -142,6 +145,9 @@ class CreditStatistics(object):
 				if creditGet == 0: # 取得学分为0 说明挂科
 					self.failCourses.append(data)
 				else :
+					matchCourse = self._inCourseInCourseList(data, self.failCourses, "courseNum", "courseName");
+					if matchCourse:
+						self.failCourses.remove(matchCourse)
 					self.repairedCourses.append(data)
 
 	@staticmethod
@@ -217,10 +223,10 @@ class CreditStatistics(object):
 			# 计算机科学与技术（数学与计算机科学实验班）
 			# http://192.168.2.20/axsxx/sxwfx_zige.asp 双专业/双学位/辅修资格
 			profession = profession.replace("  ", "（") + "）"
-			self.profession = profession
 		else:
 			# 查询是否为双专业为双学位
 			self._getMinorInfo()
+		self.profession = profession
 
 	def _getMinorInfo(self):
 		'''
@@ -274,8 +280,12 @@ class CreditStatistics(object):
 			raise Exception("查询不到专业id")
 		profession = query.filter(profession=self.profession)
 		if len(profession) == 0:
-			self.profession = self.college
-			profession = query[0]
+			profession = query.filter(profession__contains=self.profession)
+			if len(profession) == 0:
+				self.profession = self.college
+				profession = query[0]
+			else :
+				profession = profession[0]
 		else :
 			profession = profession[0]
 
