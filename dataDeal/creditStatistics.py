@@ -99,8 +99,10 @@ class CreditStatistics(object):
 			if self.repairedCourses[len(self.repairedCourses) - 1]["termNum"] == trs[0].find_all("td")[1].string:
 					# 成绩已出的话就不添加最新选课结果
 					return 
-		if len(trs) > 1:
+		if len(trs) > 0:
 			tableType = len(trs[0].find_all("td")) - 11 #判断最新选课结果包不包含培养方案认定课程类型，包含则tableType = 1, 否则为0
+		else :
+			return ;
 		for tr in trs:
 			td = tr.find_all("td")
 			data = {
